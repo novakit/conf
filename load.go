@@ -8,13 +8,7 @@ import (
 	"path/filepath"
 )
 
-const DefaultDirectory = "conf"
-
-func LoadFile(name string, out interface{}) error {
-	return LoadFileFrom(DefaultDirectory, name, out)
-}
-
-func LoadFileFrom(dir string, name string, out interface{}) error {
+func LoadFile(dir string, name string, out interface{}) error {
 	var err error
 	for fmtName, f := range Formats {
 		for _, ext := range f.Exts {
