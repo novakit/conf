@@ -3,6 +3,7 @@ package conf
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/creasty/defaults"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -33,6 +34,10 @@ func LoadFile(dir string, name string, out interface{}) error {
 			// unmarshal
 			if err = json.Unmarshal(buf, out); err != nil {
 				return fmt.Errorf("failed to unmarshal converted JSON from file '%s': %s", filename, err.Error())
+			}
+			// set defaults
+			if err = defaults.Set(out); err != nil {
+				return fmt.Errorf("failed to set defaults to '%s': %s", filename, err.Error())
 			}
 			// success
 			return nil
