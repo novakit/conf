@@ -10,11 +10,11 @@ type Loader struct {
 
 var loaders []*Loader
 
-func RegisterLoader(l *Loader) {
+func Register(l *Loader) {
 	loaders = append(loaders, l)
 }
 
-func RunLoaders(dir string) error {
+func LoadAll(dir string) error {
 	for _, l := range loaders {
 		if err := LoadFile(dir, l.Name, l.Target); err != nil {
 			return fmt.Errorf("failed to run conf loader for ‘%s’: %s", l.Name, err.Error())

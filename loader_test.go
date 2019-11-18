@@ -8,7 +8,7 @@ import (
 func TestAutoLoad(t *testing.T) {
 	var tc testConf
 	var loadedCalled bool
-	RegisterLoader(&Loader{
+	Register(&Loader{
 		Name:   "conf1",
 		Target: &tc,
 		Loaded: func() {
@@ -16,7 +16,7 @@ func TestAutoLoad(t *testing.T) {
 			require.Equal(t, "value1", tc.Key)
 		},
 	})
-	err := RunLoaders("testdata")
+	err := LoadAll("testdata")
 	require.NoError(t, err)
 	require.Equal(t, "value1", tc.Key)
 	require.True(t, loadedCalled)
