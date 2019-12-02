@@ -9,10 +9,18 @@ import (
 	"path/filepath"
 )
 
-func LoadFile(dir string, name string, out interface{}) error {
+type storageDir string
+
+// Dir create a configuration storage from local directory
+func Dir(dir string) Storage {
+	return storageDir(dir)
+}
+
+func (d storageDir) Load(name string, out interface{}) error {
 	var err error
-	for fmtName, f := range Formats {
-		for _, ext := range f.Exts {
+	dir := string(d)
+	for fmtName, f := range Decoders {
+		for _, ext := range f.IDs {
 			filename := filepath.Join(dir, name+"."+ext)
 			// check file existence
 			if _, err = os.Stat(filename); err != nil {
