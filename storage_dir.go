@@ -1,9 +1,7 @@
 package conf
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/creasty/defaults"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -19,7 +17,7 @@ func Dir(dir string) Storage {
 func (d storageDir) Load(name string, out interface{}) error {
 	var err error
 	dir := string(d)
-	for fmtName, f := range Decoders {
+	for _, f := range Decoders {
 		for _, ext := range f.IDs {
 			filename := filepath.Join(dir, name+"."+ext)
 			// check file existence
@@ -27,7 +25,7 @@ func (d storageDir) Load(name string, out interface{}) error {
 				if os.IsNotExist(err) {
 					continue
 				} else {
-					return fmt.Errorf("failed to check file '%s': %s", filename, err.Error())
+					return fmt.Errorf("failed to check file existence '%s': %s", filename, err.Error())
 				}
 			}
 			// load file content
@@ -35,21 +33,15 @@ func (d storageDir) Load(name string, out interface{}) error {
 			if buf, err = ioutil.ReadFile(filename); err != nil {
 				return fmt.Errorf("failed to read file '%s': %s", filename, err.Error())
 			}
-			// convert to json
-			if buf, err = f.ToJSON(buf); err != nil {
-				return fmt.Errorf("failed to convert file '%s' from %s to JSON: %s", filename, fmtName, err.Error())
+
+			// decode
+			if err = f.Decode(buf, out); err != nil {
+				return fmt.Errorf("failed to decode file '%s': %s", filename, err.Error())
 			}
-			// unmarshal
-			if err = json.Unmarshal(buf, out); err != nil {
-				return fmt.Errorf("failed to unmarshal converted JSON from file '%s': %s", filename, err.Error())
-			}
-			// set defaults
-			if err = defaults.Set(out); err != nil {
-				return fmt.Errorf("failed to set defaults to '%s': %s", filename, err.Error())
-			}
+
 			// success
 			return nil
 		}
 	}
-	return fmt.Errorf("failed to find conf file '%s' with supported format in '%s'", name, dir)
+	return fmt.Errorf("failed to find conf '%s' from file with supported format in '%s'", name, dir)
 }

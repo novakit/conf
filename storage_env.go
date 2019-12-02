@@ -1,9 +1,7 @@
 package conf
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/creasty/defaults"
 	"os"
 	"strings"
 )
@@ -18,29 +16,23 @@ func Env(prefix string) Storage {
 func (d storageEnv) Load(name string, out interface{}) error {
 	pfx := string(d)
 	var err error
-	for fmtName, f := range Decoders {
+	for _, f := range Decoders {
 		for _, ext := range f.IDs {
+			// retrieve value
 			key := strings.ToUpper(pfx) + "_" + strings.ToUpper(name) + "_" + strings.ToUpper(ext)
-			val := os.Getenv(key)
+			val := []byte(os.Getenv(key))
 			if len(val) == 0 {
 				continue
 			}
-			buf := []byte(val)
-			// convert to json
-			if buf, err = f.ToJSON(buf); err != nil {
-				return fmt.Errorf("failed to convert env '%s' from %s to JSON: %s", key, fmtName, err.Error())
+
+			// decode
+			if err = f.Decode(val, out); err != nil {
+				return fmt.Errorf("failed to decode key '%s': %s", key, err.Error())
 			}
-			// unmarshal
-			if err = json.Unmarshal(buf, out); err != nil {
-				return fmt.Errorf("failed to unmarshal converted JSON from env '%s': %s", key, err.Error())
-			}
-			// set defaults
-			if err = defaults.Set(out); err != nil {
-				return fmt.Errorf("failed to set defaults to env '%s': %s", key, err.Error())
-			}
+
 			// success
 			return nil
 		}
 	}
-	return fmt.Errorf("failed to find conf env '%s' with supported format", name)
+	return fmt.Errorf("failed to find conf '%s' from env with supported format and prefix '%s'", name, pfx)
 }
